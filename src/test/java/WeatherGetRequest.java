@@ -1,7 +1,6 @@
 import com.google.gson.Gson;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
-import com.sun.tools.internal.ws.processor.model.Request;
 import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -40,6 +39,7 @@ public void Test_03() {
                 .get("http://samples.openweathermap.org/data/2.5/weather");
         System.out.println(resp.getStatusCode());
         Assert.assertEquals(resp.statusCode(), 200);
+
     }
     @Test
     public void Test_04() {
