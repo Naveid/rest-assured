@@ -44,7 +44,7 @@ public class Employee {
     @Test(threadPoolSize = 3)
 
     public void test(){
-        ArrayList<empdetails>abc = new ArrayList<>();
+        ArrayList<empdetails>abc = new ArrayList();
         empdetails emp1= new empdetails("nav",1);
         abc.add(emp1);
         empdetails emp2=new empdetails("del",2);

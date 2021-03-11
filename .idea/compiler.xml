@@ -9,8 +9,5 @@
         <module name="myFirstAutomation" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="myFirstAutomation" target="1.7" />
-    </bytecodeTargetLevel>
   </component>
 </project>

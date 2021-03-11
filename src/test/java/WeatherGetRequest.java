@@ -1,14 +1,23 @@
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.internal.mapper.ObjectMapperType;
+import com.jayway.restassured.path.json.JsonPath;
 import com.jayway.restassured.response.Response;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
+import testpojo.Weather;
+import testpojo.Weatherapi;
 
 import javax.print.attribute.standard.RequestingUserName;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static com.jayway.restassured.RestAssured.*;
 
@@ -37,9 +46,61 @@ public void Test_03() {
                 param("appid", "b6907d289e10d714a6e88b30761fae22").
                 when()
                 .get("http://samples.openweathermap.org/data/2.5/weather");
+        System.out.println(resp.getTimeIn(TimeUnit.SECONDS));
+        //Way 1 Creating Pojo files
+        Weatherapi weatherapi= resp.as(Weatherapi.class, ObjectMapperType.GSON);
+        String icon="";
+        SoftAssert softAssert = new SoftAssert();
+        List<Weather> po =weatherapi.getWeather();
+        for(Weather weather:po){
+            icon =weather.getIcon();
+
+            System.out.println(weather.toString());
+            softAssert.assertTrue(!weather.getDescription().equalsIgnoreCase(""));
+        }
+        softAssert.assertAll();
+
+
+
         System.out.println(resp.getStatusCode());
         Assert.assertEquals(resp.statusCode(), 200);
+        resp.getBody().prettyPrint();
 
+        //Way 2 usinh JsonPath.getString
+        String ab =resp.jsonPath().getString("visibility");
+        System.out.println("visibility-->"+ab);
+        HashMap<String,Integer> ah = new HashMap<String, Integer>();
+        ab=resp.jsonPath().getString("main");
+        System.out.println("temp-->"+ab);
+
+
+        //Way 3 using .then.extarct.path
+        List<HashMap<String,Integer>> abc =resp.then().extract().path("weather");
+        for(int k=0;k<abc.size();k++){
+            System.out.println(abc.get(k).get("description"));
+        }
+
+        //Way 4<->2  using JsonPath class object
+        JsonPath jsonPath = resp.jsonPath();
+        List<HashMap<String,String>> abcs=jsonPath.get("weather");
+
+
+        for(int k=0;k<abc.size();k++){
+            System.out.println("in JsonPath");
+            if(abcs.get(k).get("description").equals("light intensity drizzle")) {
+            Assert.assertEquals(abcs.get(k).get("icon"),icon,"values not matched");
+            }
+
+        }
+
+       // JSONObject object=new JSONObject(resp.getBody().toString().trim());
+
+        //JSONArray array=object.getJSONArray("weather");
+        //System.out.println(array.length());
+//        for(int i =0;i<array.length();i++){
+//            JSONObject jsonObject = array.getJSONObject(i);
+//            System.out.println(jsonObject.getJSONObject("temp"));
+//        }
     }
     @Test
     public void Test_04() {
@@ -74,65 +135,65 @@ public void Test_03() {
         System.out.println(resp.asString());
         Assert.assertEquals(resp.getStatusCode(),200);
     }
-    @Test
-    public void Test_07() {
-//weather by city id
-        String  GrsReviewIds =String.valueOf( given().param("locale", "en_GB").
-                param("pageSize", "5").
-                param("pageNumber","4").
-                param("sortBy","POST_DATE_DESC").
-                when()
-                .get("http://guestreviewservice.staging.hcom/v1/properties/335698/reviews").
-                        then().contentType(ContentType.JSON).extract().path("reviewId"));
-        System.out.println("GrsReviewIds--> "+GrsReviewIds);
-     //   curl -X GET "http://guestreviewservice.staging.hcom/v1/properties/335698/reviews?applyEmbargo=false&
-        // languageTypes=ALL&locale=en_GB&minReviewLength=0&pageNumber=1&pageSize=5&sortBy=RELEVANCE_ASC&tripType=ALL" -H "accept: application/json" -H "X-Application-ID: test-app" -H "Content-Type: application/json"
-        // -d "{\"reviewsRelevance\":{\"37069330\": \"0.9\"}}"
-        Map<String, Object> userDetails = new HashMap<>();
-        Map<String, Object> details = new HashMap<>();
-
-
-
-        Map<Integer, Double> reviewRelevance = new HashMap<>();
-        reviewRelevance.put(37069330,0.9);
-        System.out.println(reviewRelevance);
-        Gson gson = new Gson();
-        String json = gson.toJson(reviewRelevance);
-        System.out.println(json);
-
-Map<String,Object> check = new HashMap<>();
-check.put("reviewsRelevance", reviewRelevance);
-        String json1 = gson.toJson(check);
-        System.out.println("ppp:"+json1);
-
-
-
-
-        String data ="{\"reviewsRelevance\":"+json+"}";
-        System.out.println(data);
-        String  GrsAlpsReviewIds =String.valueOf( given().param("locale", "en_GB").
-                param("pageSize", "10").
-                param("applyEmbargo","false").
-                param("languageTypes","ALL").
-                param("minReviewLength","0").
-                param("pageNumber","1").
-                param("sortBy","RELEVANCE_ASC").
-                param("tripType","ALL").
-                body(json1).
-                //param("\"reviewsRelevance\":",json1).
-                //param("reviewRelevance",reviewRelevance).
-                when()
-                .get("http://guestreviewservice.staging.hcom/v1/properties/335698/reviews").
-                        then().
-                        contentType(ContentType.JSON).extract().path("reviewId"));
-        System.out.println("GrsAlpsReviewIds--> "+GrsAlpsReviewIds);
-
-
-
-    }
-
-
-
+   // @Test
+//    public void Test_07() {
+////weather by city id
+//        String  GrsReviewIds =String.valueOf( given().param("locale", "en_GB").
+//                param("pageSize", "5").
+//                param("pageNumber","4").
+//                param("sortBy","POST_DATE_DESC").
+//                when()
+//                .get("http://guestreviewservice.staging.hcom/v1/properties/335698/reviews").
+//                        then().contentType(ContentType.JSON).extract().path("reviewId"));
+//        System.out.println("GrsReviewIds--> "+GrsReviewIds);
+//     //   curl -X GET "http://guestreviewservice.staging.hcom/v1/properties/335698/reviews?applyEmbargo=false&
+//        // languageTypes=ALL&locale=en_GB&minReviewLength=0&pageNumber=1&pageSize=5&sortBy=RELEVANCE_ASC&tripType=ALL" -H "accept: application/json" -H "X-Application-ID: test-app" -H "Content-Type: application/json"
+//        // -d "{\"reviewsRelevance\":{\"37069330\": \"0.9\"}}"
+//        Map<String, Object> userDetails = new HashMap<>();
+//        Map<String, Object> details = new HashMap<>();
+//
+//
+//
+//        Map<Integer, Double> reviewRelevance = new HashMap<>();
+//        reviewRelevance.put(37069330,0.9);
+//        System.out.println(reviewRelevance);
+//        Gson gson = new Gson();
+//        String json = gson.toJson(reviewRelevance);
+//        System.out.println(json);
+//
+//Map<String,Object> check = new HashMap<>();
+//check.put("reviewsRelevance", reviewRelevance);
+//        String json1 = gson.toJson(check);
+//        System.out.println("ppp:"+json1);
+//
+//
+//
+//
+//        String data ="{\"reviewsRelevance\":"+json+"}";
+//        System.out.println(data);
+//        String  GrsAlpsReviewIds =String.valueOf( given().param("locale", "en_GB").
+//                param("pageSize", "10").
+//                param("applyEmbargo","false").
+//                param("languageTypes","ALL").
+//                param("minReviewLength","0").
+//                param("pageNumber","1").
+//                param("sortBy","RELEVANCE_ASC").
+//                param("tripType","ALL").
+//                body(json1).
+//                //param("\"reviewsRelevance\":",json1).
+//                //param("reviewRelevance",reviewRelevance).
+//                when()
+//                .get("http://guestreviewservice.staging.hcom/v1/properties/335698/reviews").
+//                        then().
+//                        contentType(ContentType.JSON).extract().path("reviewId"));
+//        System.out.println("GrsAlpsReviewIds--> "+GrsAlpsReviewIds);
+//
+//
+//
+//    }
+//
+//
+//
 
 
 
