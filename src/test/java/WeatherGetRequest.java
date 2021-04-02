@@ -93,14 +93,15 @@ public void Test_03() {
 
         }
 
-       // JSONObject object=new JSONObject(resp.getBody().toString().trim());
+        JSONObject object=new JSONObject(resp.getBody().asString());
 
-        //JSONArray array=object.getJSONArray("weather");
-        //System.out.println(array.length());
-//        for(int i =0;i<array.length();i++){
-//            JSONObject jsonObject = array.getJSONObject(i);
-//            System.out.println(jsonObject.getJSONObject("temp"));
-//        }
+        JSONArray array=object.getJSONArray("weather");
+        System.out.println(array.length());
+    for(int i =0;i<array.length();i++){
+           JSONObject jsonObject = array.getJSONObject(i);
+
+           System.out.println(jsonObject.get("icon"));
+    }
     }
     @Test
     public void Test_04() {
@@ -114,6 +115,34 @@ public void Test_03() {
         //Assert.assertEquals(resp.statusCode(), 200);
     }
 
+    @Test
+public void googlebooks(){
+        Response resp=given().param("q","Islam").when().get("https://www.googleapis.com/books/v1/volumes");
+
+        JSONObject object=new JSONObject(resp.getBody().asString());
+        JSONArray items=object.getJSONArray("items");
+        System.out.println("Total records displayed -->"+items.length());
+
+
+            JSONObject volumeInfo = ((JSONObject) items.get(0)).getJSONObject("volumeInfo");
+        System.out.println("tittle-->"+volumeInfo.optString("title"));
+        JSONArray authorsArray = volumeInfo.optJSONArray("authors");
+        System.out.println(authorsArray.length() );
+
+//        for (int i=0;i< items.length();i++){
+//            //System.out.println(items.get(i));
+//            JSONObject innerJson = items.getJSONObject(i);
+//            System.out.println(innerJson.get("volumeInfo"));
+
+//           JSONArray volumeinfo = innerJson.getJSONArray("volumeInfo");
+//            for (int c=0;c< volumeinfo.length();i++) {
+//                JSONObject innerJsonVi = volumeinfo.getJSONObject(i);
+//                System.out.println("Title--->" + innerJsonVi.get("title"));
+//            }
+        //}
+       //JsonArray volumeinfo = items.getJSONArray("volumeInfo");
+        resp.prettyPrint();
+    }
     @Test
     public void Test_05() {
 
